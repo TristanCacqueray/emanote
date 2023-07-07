@@ -4,6 +4,7 @@ import Control.Monad.Logger (MonadLoggerIO)
 import Data.Aeson.Types qualified as Aeson
 import Data.List (partition)
 import Data.List.NonEmpty qualified as NE
+import Data.Time (UTCTime, getCurrentTime)
 import Data.Map.Syntax ((##))
 import Data.Text qualified as T
 import Data.Tree.Path qualified as PathTree
@@ -22,6 +23,7 @@ import Emanote.Route.SiteRoute qualified as SR
 import Emanote.Route.SiteRoute.Class (indexRoute)
 import Emanote.View.Common qualified as C
 import Emanote.View.Export (renderGraphExport)
+import Emanote.View.Feed (renderFeed)
 import Emanote.View.TagIndex qualified as TagIndex
 import Emanote.View.TaskIndex qualified as TaskIndex
 import Heist qualified as H
@@ -80,15 +82,24 @@ render m sr =
                   & setErrorPageMeta
                   & MN.noteTitle .~ "! Ambiguous link"
           pure $ Ema.AssetGenerated Ema.Html $ renderLmlHtml m noteAmb
-        SR.SiteRoute_ResourceRoute r -> pure $ renderResourceRoute m r
+        SR.SiteRoute_ResourceRoute r -> do
+          now <- liftIO getCurrentTime
+          pure $ renderResourceRoute now m r
         SR.SiteRoute_VirtualRoute r -> renderVirtualRoute m r
 
-renderResourceRoute :: Model -> SR.ResourceRoute -> Ema.Asset LByteString
-renderResourceRoute m = \case
+renderResourceRoute :: UTCTime -> Model -> SR.ResourceRoute -> Ema.Asset LByteString
+renderResourceRoute now m = \case
   SR.ResourceRoute_LML r -> do
     case M.modelLookupNoteByRoute r m of
       Just note ->
         Ema.AssetGenerated Ema.Html $ renderLmlHtml m note
+      Nothing ->
+        -- This should never be reached because decodeRoute looks up the model.
+        error $ "Bad route: " <> show r
+  SR.ResourceRoute_Feed r ->
+    case M.modelLookupNoteByRoute r m of
+      Just _note ->
+        Ema.AssetGenerated Ema.Other $ renderFeed now m
       Nothing ->
         -- This should never be reached because decodeRoute looks up the model.
         error $ "Bad route: " <> show r

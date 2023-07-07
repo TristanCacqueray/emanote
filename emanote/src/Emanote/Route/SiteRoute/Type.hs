@@ -36,6 +36,7 @@ data VirtualRoute
 data ResourceRoute
   = ResourceRoute_StaticFile StaticFileRoute FilePath
   | ResourceRoute_LML LMLRoute
+  | ResourceRoute_Feed LMLRoute
   deriving stock (Eq, Show, Ord, Generic)
   deriving anyclass (ToJSON)
 
@@ -57,6 +58,8 @@ instance Show SiteRoute where
         ResourceRoute_StaticFile r _fp ->
           show r
         ResourceRoute_LML r ->
+          show $ lmlRouteCase r
+        ResourceRoute_Feed r ->
           show $ lmlRouteCase r
     SiteRoute_VirtualRoute x ->
       show x

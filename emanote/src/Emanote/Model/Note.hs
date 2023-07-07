@@ -57,6 +57,8 @@ type NoteIxs =
      WL.WikiLink
    , -- HTML route for this note
      R 'R.Html
+   , -- XML route for this note
+     R 'R.Xml
    , -- Ancestor folder routes
      RAncestor
    , -- Parent folder
@@ -75,6 +77,7 @@ instance Indexable NoteIxs Note where
       (ixFun $ one . _noteRoute)
       (ixFun $ toList . noteSelfRefs)
       (ixFun $ one . noteHtmlRoute)
+      (ixFun $ one . noteXmlRoute)
       (ixFun noteAncestors)
       (ixFun $ maybeToList . noteParent)
       (ixFun noteTags)
@@ -147,6 +150,16 @@ queryNoteTitle r doc meta =
     withoutH1 x =
       x
 
+-- | The xml route intended by user for this note.
+noteXmlRoute :: Note -> R 'R.Xml
+noteXmlRoute note@Note {..} =
+  -- Favour slug if one exists, otherwise use the full path.
+  case noteSlug note of
+    Nothing ->
+      R.withLmlRoute coerce _noteRoute
+    Just slugs ->
+      R.mkRouteFromSlugs slugs
+
 -- | The HTML route intended by user for this note.
 noteHtmlRoute :: Note -> R 'R.Html
 noteHtmlRoute note@Note {..} =
@@ -159,6 +172,10 @@ noteHtmlRoute note@Note {..} =
 
 lookupNotesByHtmlRoute :: R 'R.Html -> IxNote -> [Note]
 lookupNotesByHtmlRoute htmlRoute =
+  Ix.toList . Ix.getEQ htmlRoute
+
+lookupNotesByXmlRoute :: R 'R.Xml -> IxNote -> [Note]
+lookupNotesByXmlRoute htmlRoute =
   Ix.toList . Ix.getEQ htmlRoute
 
 lookupNotesByRoute :: HasCallStack => R.LMLRoute -> IxNote -> Maybe Note

@@ -243,6 +243,16 @@ modelLookupNoteByHtmlRoute r =
     . N.lookupNotesByHtmlRoute r
     . _modelNotes
 
+modelLookupFeedNoteByHtmlRoute :: R 'R.Xml -> ModelT f -> Maybe Note
+modelLookupFeedNoteByHtmlRoute r model = case resolvedTarget of
+    Rel.RRTFound note -> -- TODO check if note has a feed
+      pure note
+    _ -> Nothing
+  where
+    resolvedTarget = Rel.resolvedRelTargetFromCandidates
+      $ N.lookupNotesByXmlRoute r
+      $ _modelNotes model
+
 modelLookupTitle :: LMLRoute -> ModelT f -> Tit.Title
 modelLookupTitle r =
   maybe (Tit.fromRoute r) N._noteTitle . modelLookupNoteByRoute r

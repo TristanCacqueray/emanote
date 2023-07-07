@@ -160,6 +160,7 @@ siteRouteDefaultInnerText model url = \case
     case resR of
       SR.ResourceRoute_LML lmlR ->
         Tit.toInlines . MN._noteTitle <$> M.modelLookupNoteByRoute lmlR model
+      SR.ResourceRoute_Feed _ -> Nothing
       SR.ResourceRoute_StaticFile _ _ ->
         -- Just append a file: prefix, to existing wiki-link.
         pure $ B.Str "File:" : [B.Str url]
