@@ -6,6 +6,7 @@ module Emanote.Model.Type where
 
 import Commonmark.Extensions.WikiLink qualified as WL
 import Data.Aeson qualified as Aeson
+import Data.Aeson.Optics
 import Data.Default (Default (def))
 import Data.IxSet.Typed ((@=))
 import Data.IxSet.Typed qualified as Ix
@@ -20,7 +21,7 @@ import Emanote.Model.Link.Rel (IxRel)
 import Emanote.Model.Link.Rel qualified as Rel
 import Emanote.Model.Note (
   IxNote,
-  Note,
+  Note (_noteMeta),
  )
 import Emanote.Model.Note qualified as N
 import Emanote.Model.SData (IxSData, SData, sdataRoute)
@@ -42,7 +43,8 @@ import Emanote.Source.Loc (Loc)
 import Heist.Extra.TemplateState (TemplateState)
 import Network.URI.Slug (Slug)
 import Optics.Core (Prism')
-import Optics.Operators ((%~), (.~), (^.))
+import Optics.Operators ((%~), (.~), (^.), (^?))
+import Optics.Optic ((%))
 import Optics.TH (makeLenses)
 import Relude
 
@@ -245,13 +247,15 @@ modelLookupNoteByHtmlRoute r =
 
 modelLookupFeedNoteByHtmlRoute :: R 'R.Xml -> ModelT f -> Maybe Note
 modelLookupFeedNoteByHtmlRoute r model = case resolvedTarget of
-    Rel.RRTFound note -> -- TODO check if note has a feed
-      pure note
+  Rel.RRTFound note -> case _noteMeta note ^? key "generate_feed" % _Bool of
+    Just True -> pure note
     _ -> Nothing
+  _ -> Nothing
   where
-    resolvedTarget = Rel.resolvedRelTargetFromCandidates
-      $ N.lookupNotesByXmlRoute r
-      $ _modelNotes model
+    resolvedTarget =
+      Rel.resolvedRelTargetFromCandidates $
+        N.lookupNotesByXmlRoute r $
+          _modelNotes model
 
 modelLookupTitle :: LMLRoute -> ModelT f -> Tit.Title
 modelLookupTitle r =
@@ -302,7 +306,7 @@ modelIndexRoute :: ModelT f -> LMLRoute
 modelIndexRoute model = do
   resolveLmlRoute model R.indexRoute
 
-resolveLmlRoute :: forall lmlType f. ModelT f -> R ('R.LMLType lmlType) -> LMLRoute
+resolveLmlRoute :: forall lmlType f. ModelT f -> R ( 'R.LMLType lmlType) -> LMLRoute
 resolveLmlRoute model r =
   fromMaybe (R.defaultLmlRoute r) $ resolveLmlRouteIfExists (model ^. modelNotes) r
 
