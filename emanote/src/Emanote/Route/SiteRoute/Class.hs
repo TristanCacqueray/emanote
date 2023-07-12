@@ -25,7 +25,7 @@ import Emanote.Model.Link.Rel qualified as Rel
 import Emanote.Model.Meta qualified as Model
 import Emanote.Model.Note qualified as N
 import Emanote.Model.StaticFile qualified as SF
-import Emanote.Model.Type (Model, ModelEma, ModelT)
+import Emanote.Model.Type (Model, ModelEma, ModelT, isNoteFeed)
 import Emanote.Pandoc.Markdown.Syntax.HashTag qualified as HT
 import Emanote.Route qualified as R
 import Emanote.Route.ModelRoute (LMLRoute, StaticFileRoute)
@@ -41,6 +41,11 @@ emanoteGeneratableRoutes model =
         model ^. M.modelNotes
           & Ix.toList
           <&> noteFileSiteRoute
+      feedRoutes =
+        model ^. M.modelNotes
+          & Ix.toList
+          & filter isNoteFeed
+          <&> noteFeedSiteRoute
       staticRoutes =
         let includeFile f =
               not (LiveServerFile.isLiveServerFile f)
@@ -63,6 +68,7 @@ emanoteGeneratableRoutes model =
               : VirtualRoute_TaskIndex
               : (VirtualRoute_TagIndex <$> toList tagPaths)
    in htmlRoutes
+        <> feedRoutes
         <> staticRoutes
         <> fmap SiteRoute_VirtualRoute virtualRoutes
 

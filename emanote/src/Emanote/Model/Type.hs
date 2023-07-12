@@ -245,11 +245,16 @@ modelLookupNoteByHtmlRoute r =
     . N.lookupNotesByHtmlRoute r
     . _modelNotes
 
+isNoteFeed :: Note -> Bool
+isNoteFeed note = case _noteMeta note ^? key "generate_feed" % _Bool of
+  Just True -> True
+  _ -> False
+
 modelLookupFeedNoteByHtmlRoute :: R 'R.Xml -> ModelT f -> Maybe Note
 modelLookupFeedNoteByHtmlRoute r model = case resolvedTarget of
-  Rel.RRTFound note -> case _noteMeta note ^? key "generate_feed" % _Bool of
-    Just True -> pure note
-    _ -> Nothing
+  Rel.RRTFound note
+    | isNoteFeed note -> pure note
+    | otherwise -> Nothing
   _ -> Nothing
   where
     resolvedTarget =
