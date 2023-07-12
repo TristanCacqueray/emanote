@@ -25,7 +25,7 @@ import Emanote.Model.Link.Rel qualified as Rel
 import Emanote.Model.Meta qualified as Model
 import Emanote.Model.Note qualified as N
 import Emanote.Model.StaticFile qualified as SF
-import Emanote.Model.Type (Model, ModelEma, ModelT, isNoteFeed)
+import Emanote.Model.Type (Model, ModelEma, ModelT)
 import Emanote.Pandoc.Markdown.Syntax.HashTag qualified as HT
 import Emanote.Route qualified as R
 import Emanote.Route.ModelRoute (LMLRoute, StaticFileRoute)
@@ -44,7 +44,7 @@ emanoteGeneratableRoutes model =
       feedRoutes =
         model ^. M.modelNotes
           & Ix.toList
-          & filter isNoteFeed
+          & filter N.noteHasFeed
           <&> noteFeedSiteRoute
       staticRoutes =
         let includeFile f =
@@ -109,10 +109,10 @@ encodeResourceRoute model = \case
       $ M.modelLookupNoteByRoute r model
   ResourceRoute_Feed r ->
     R.encodeRoute
-      $
-      maybe (error $ "emanote: attempt to encode missing note: " <> show r)
-      N.noteXmlRoute
-      $ M.modelLookupNoteByRoute r model
+      $ fromMaybe
+          -- FIXME: See note above.
+          (error $ "emanote: attempt to encode missing note: " <> show r)
+      $ N.noteXmlRoute =<< M.modelLookupNoteByRoute r model
   ResourceRoute_StaticFile r _fpAbs ->
     R.encodeRoute r
 

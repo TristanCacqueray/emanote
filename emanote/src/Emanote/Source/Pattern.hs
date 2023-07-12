@@ -14,8 +14,6 @@ filePattern = \case
       "**/*"
   R.Yaml ->
     R.withExt @_ @'R.Yaml "**/*"
-  R.Xml ->
-    R.withExt @_ @'R.Xml "**/*"
   R.HeistTpl ->
     R.withExt @_ @'R.HeistTpl $
       "**/*"

@@ -6,7 +6,6 @@ module Emanote.Model.Type where
 
 import Commonmark.Extensions.WikiLink qualified as WL
 import Data.Aeson qualified as Aeson
-import Data.Aeson.Optics
 import Data.Default (Default (def))
 import Data.IxSet.Typed ((@=))
 import Data.IxSet.Typed qualified as Ix
@@ -21,7 +20,8 @@ import Emanote.Model.Link.Rel (IxRel)
 import Emanote.Model.Link.Rel qualified as Rel
 import Emanote.Model.Note (
   IxNote,
-  Note (_noteMeta),
+  Note,
+  noteHasFeed,
  )
 import Emanote.Model.Note qualified as N
 import Emanote.Model.SData (IxSData, SData, sdataRoute)
@@ -43,8 +43,7 @@ import Emanote.Source.Loc (Loc)
 import Heist.Extra.TemplateState (TemplateState)
 import Network.URI.Slug (Slug)
 import Optics.Core (Prism')
-import Optics.Operators ((%~), (.~), (^.), (^?))
-import Optics.Optic ((%))
+import Optics.Operators ((%~), (.~), (^.))
 import Optics.TH (makeLenses)
 import Relude
 
@@ -245,15 +244,10 @@ modelLookupNoteByHtmlRoute r =
     . N.lookupNotesByHtmlRoute r
     . _modelNotes
 
-isNoteFeed :: Note -> Bool
-isNoteFeed note = case _noteMeta note ^? key "generate_feed" % _Bool of
-  Just True -> True
-  _ -> False
-
 modelLookupFeedNoteByHtmlRoute :: R 'R.Xml -> ModelT f -> Maybe Note
 modelLookupFeedNoteByHtmlRoute r model = case resolvedTarget of
   Rel.RRTFound note
-    | isNoteFeed note -> pure note
+    | noteHasFeed note -> pure note
     | otherwise -> Nothing
   _ -> Nothing
   where

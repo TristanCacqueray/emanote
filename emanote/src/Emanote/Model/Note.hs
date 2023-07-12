@@ -36,12 +36,20 @@ import Text.Pandoc.Definition (Pandoc (..))
 import Text.Pandoc.Readers.Org (readOrg)
 import Text.Pandoc.Walk qualified as W
 
+data Feed = Feed
+  { _feedEnabled :: Bool
+  , _feedTitle :: Text
+  }
+  deriving stock (Eq, Ord, Show, Generic)
+  deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
+
 data Note = Note
   { _noteRoute :: R.LMLRoute
   , _noteDoc :: Pandoc
   , _noteMeta :: Aeson.Value
   , _noteTitle :: Tit.Title
   , _noteErrors :: [Text]
+  , _noteFeed :: Maybe Feed
   }
   deriving stock (Eq, Ord, Show, Generic)
   deriving anyclass (Aeson.ToJSON)
@@ -77,7 +85,7 @@ instance Indexable NoteIxs Note where
       (ixFun $ one . _noteRoute)
       (ixFun $ toList . noteSelfRefs)
       (ixFun $ one . noteHtmlRoute)
-      (ixFun $ one . noteXmlRoute)
+      (ixFun $ maybeToList . noteXmlRoute)
       (ixFun noteAncestors)
       (ixFun $ maybeToList . noteParent)
       (ixFun noteTags)
@@ -118,6 +126,16 @@ lookupMeta :: Aeson.FromJSON a => NonEmpty Text -> Note -> Maybe a
 lookupMeta k =
   SData.lookupAeson Nothing k . _noteMeta
 
+noteHasFeed :: Note -> Bool
+noteHasFeed = maybe False _feedEnabled . _noteFeed
+
+queryNoteFeed :: Aeson.Value -> Maybe Feed
+queryNoteFeed meta = do
+  feed <- SData.lookupAeson Nothing (one "feed") meta
+  name <- SData.lookupAeson Nothing (one "name") feed
+  let enabled = SData.lookupAeson False (one "enabled") feed
+  pure $ Feed enabled name
+
 queryNoteTitle :: R.LMLRoute -> Pandoc -> Aeson.Value -> (Pandoc, Tit.Title)
 queryNoteTitle r doc meta =
   let yamlNoteTitle = fromString <$> SData.lookupAeson Nothing (one "title") meta
@@ -151,14 +169,10 @@ queryNoteTitle r doc meta =
       x
 
 -- | The xml route intended by user for this note.
-noteXmlRoute :: Note -> R 'R.Xml
-noteXmlRoute note@Note {..} =
-  -- Favour slug if one exists, otherwise use the full path.
-  case noteSlug note of
-    Nothing ->
-      R.withLmlRoute coerce _noteRoute
-    Just slugs ->
-      R.mkRouteFromSlugs slugs
+noteXmlRoute :: Note -> Maybe (R 'R.Xml)
+noteXmlRoute note
+  | noteHasFeed note = Just (coerce $ noteHtmlRoute note)
+  | otherwise = Nothing
 
 -- | The HTML route intended by user for this note.
 noteHtmlRoute :: Note -> R 'R.Html
@@ -258,8 +272,9 @@ mkEmptyNoteWith someR (Pandoc mempty -> doc) =
 mkNoteWith :: R.LMLRoute -> Pandoc -> Aeson.Value -> [Text] -> Note
 mkNoteWith r doc' meta errs =
   let (doc'', tit) = queryNoteTitle r doc' meta
+      feed = queryNoteFeed meta
       doc = if null errs then doc'' else pandocPrepend (errorDiv errs) doc''
-   in Note r doc meta tit errs
+   in Note r doc meta tit errs feed
   where
     -- Prepend to block to the beginning of a Pandoc document (never before H1)
     pandocPrepend :: B.Block -> Pandoc -> Pandoc

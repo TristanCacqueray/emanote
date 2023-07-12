@@ -113,7 +113,6 @@ patchModel' layers noteF storkIndexTVar fpType fp action = do
           UM.Delete -> do
             log $ "Removing data: " <> toText fp
             pure $ M.modelDeleteData r
-    R.Xml -> pure id
     R.HeistTpl ->
       case action of
         UM.Refresh refreshAction overlays -> do
