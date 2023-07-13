@@ -3,8 +3,6 @@
 module Emanote.View.Feed where
 
 import Data.Aeson.Optics (key, _String)
-import Data.Time (UTCTime)
-import Data.Time.Format
 import Emanote.Model (Model)
 import Emanote.Model.Note (Note (..), Feed (..))
 import Emanote.Model.Query (parseQuery, runQuery)
@@ -32,11 +30,14 @@ notesToFeed noteUrl feedUpdated notes feedUrl title =
     toEntry :: Note -> Atom.Entry
     toEntry note = Atom.nullEntry (noteUrl note) noteTitle noteDate
       where
-        noteDate = fromMaybe "1970-01-01" $ (_noteMeta note) ^? key "date" % _String
+        noteDate = getNoteDate note
         noteTitle = (Atom.TextString (toPlain $ _noteTitle note))
 
-renderFeed :: UTCTime -> Model -> Note -> LByteString
-renderFeed now model baseNote = encodeUtf8 $ fromMaybe "<error>bad feed</error>" mFeedTxt
+getNoteDate :: Note -> Atom.Date
+getNoteDate note = fromMaybe "1970-01-01" $ (_noteMeta note) ^? key "date" % _String
+
+renderFeed :: Model -> Note -> LByteString
+renderFeed model baseNote = encodeUtf8 $ fromMaybe "<error>bad feed</error>" mFeedTxt
   where
     mFeedTxt = do
       feed <- _noteFeed baseNote
@@ -46,6 +47,8 @@ renderFeed now model baseNote = encodeUtf8 $ fromMaybe "<error>bad feed</error>"
       let noteUrl note =
             let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
              in feedUrl <> "/" <> siteRouteUrl model sr
-      let final = notesToFeed noteUrl age (getNotes feedQuery model) feedUrl feedName
+      let notes = getNotes feedQuery model
+      topNote <- listToMaybe notes
+      let updated = getNoteDate topNote
+      let final = notesToFeed noteUrl updated notes feedUrl feedName
       Export.textFeed final
-    age = toText $ formatTime defaultTimeLocale "%F" now
