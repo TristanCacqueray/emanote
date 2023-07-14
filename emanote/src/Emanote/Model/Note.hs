@@ -189,8 +189,8 @@ lookupNotesByHtmlRoute htmlRoute =
   Ix.toList . Ix.getEQ htmlRoute
 
 lookupNotesByXmlRoute :: R 'R.Xml -> IxNote -> [Note]
-lookupNotesByXmlRoute htmlRoute =
-  Ix.toList . Ix.getEQ htmlRoute
+lookupNotesByXmlRoute xmlRoute =
+  Ix.toList . Ix.getEQ xmlRoute
 
 lookupNotesByRoute :: HasCallStack => R.LMLRoute -> IxNote -> Maybe Note
 lookupNotesByRoute r ix = do

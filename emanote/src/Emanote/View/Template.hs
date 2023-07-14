@@ -81,8 +81,7 @@ render m sr =
                   & setErrorPageMeta
                   & MN.noteTitle .~ "! Ambiguous link"
           pure $ Ema.AssetGenerated Ema.Html $ renderLmlHtml m noteAmb
-        SR.SiteRoute_ResourceRoute r ->
-          pure $ renderResourceRoute m r
+        SR.SiteRoute_ResourceRoute r -> pure $ renderResourceRoute m r
         SR.SiteRoute_VirtualRoute r -> renderVirtualRoute m r
 
 renderResourceRoute :: Model -> SR.ResourceRoute -> Ema.Asset LByteString
