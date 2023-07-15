@@ -70,7 +70,8 @@ renderFeed model baseNote = encodeUtf8 $ case eFeedText of
       let feedEntries = noteToEntry noteUrl <$> toList notes
 
       -- render the feed
-      let feedName = Atom.TextString (_feedTitle feed)
+      let feedTitle = fromMaybe (toPlain $ _noteTitle baseNote) (_feedTitle feed)
+      let feedName = Atom.TextString feedTitle
       let feedUpdated = getNoteDate (head notes)
       let atomFeed = (Atom.nullFeed feedUrl feedName feedUpdated) {Atom.feedEntries}
       maybeToRight "invalid feed" $ Export.textFeed atomFeed
