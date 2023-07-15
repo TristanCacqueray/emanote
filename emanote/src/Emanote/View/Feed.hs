@@ -4,23 +4,18 @@ module Emanote.View.Feed where
 
 import Data.Aeson.Optics (key, _String)
 import Emanote.Model (Model)
-import Emanote.Model.Note (Feed (..), Note (..))
+import Emanote.Model.Meta (lookupRouteMeta)
+import Emanote.Model.Note (Feed (..), Note (..), lookupMeta)
 import Emanote.Model.Query (Query, parseQuery, runQuery)
 import Emanote.Model.Title (toPlain)
-import Emanote.Route.ModelRoute
-import Emanote.Route.R (indexRoute)
+import Emanote.Model.Type qualified as M
 import Emanote.Route.SiteRoute
 import Optics.Operators ((^?))
 import Optics.Optic ((%))
 import Relude
 import Text.Atom.Feed qualified as Atom
 import Text.Atom.Feed.Export qualified as Export (textFeed)
-import Text.Pandoc.Definition
-
-getNotes :: Text -> Model -> [Note]
-getNotes queryTxt model = case parseQuery queryTxt of
-  Nothing -> []
-  Just query -> runQuery (LMLRoute_Md indexRoute) model query
+import Text.Pandoc.Definition hiding (lookupMeta)
 
 notesToFeed :: (Note -> Text) -> Atom.Date -> [Note] -> Atom.URI -> Text -> Atom.Feed
 notesToFeed noteUrl feedUpdated notes feedUrl title =
@@ -68,7 +63,11 @@ renderFeed model baseNote = encodeUtf8 $ case eFeedText of
         x : xs -> Right (x :| xs)
 
       -- render the feed
-      let feedUrl = "http://example.com" -- TODO: get from index.yaml
+      let noteFeedUrl, indexUrl :: Maybe Text
+          noteFeedUrl = lookupMeta ("feed" :| ["url"]) baseNote
+          indexRoute = M.modelIndexRoute model
+          indexUrl = lookupRouteMeta Nothing ("site" :| ["url"]) indexRoute model
+      feedUrl <- maybeToRight "index.yaml or note doesn't have url" (noteFeedUrl <|> indexUrl)
       let feedName = _feedTitle feed
       let noteUrl note =
             let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
