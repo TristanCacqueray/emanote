@@ -17,17 +17,13 @@ import Text.Atom.Feed qualified as Atom
 import Text.Atom.Feed.Export qualified as Export (textFeed)
 import Text.Pandoc.Definition hiding (lookupMeta)
 
-notesToFeed :: (Note -> Text) -> Atom.Date -> [Note] -> Atom.URI -> Text -> Atom.Feed
-notesToFeed noteUrl feedUpdated notes feedUrl title =
-  (Atom.nullFeed feedUrl feedTitle feedUpdated) {Atom.feedEntries}
+noteToEntry :: (Note -> Text) -> Note -> Atom.Entry
+noteToEntry noteUrl note = entry {Atom.entrySummary}
   where
-    feedTitle = Atom.TextString title
-    feedEntries = map toEntry notes
-    toEntry :: Note -> Atom.Entry
-    toEntry note = Atom.nullEntry (noteUrl note) noteTitle noteDate
-      where
-        noteDate = getNoteDate note
-        noteTitle = (Atom.TextString (toPlain $ _noteTitle note))
+    entry = Atom.nullEntry (noteUrl note) noteTitle noteDate
+    noteDate = getNoteDate note
+    noteTitle = (Atom.TextString (toPlain $ _noteTitle note))
+    entrySummary = Atom.TextString <$> lookupMeta ("page" :| ["description"]) note
 
 getNoteDate :: Note -> Atom.Date
 getNoteDate note = fromMaybe "1970-01-01" $ (_noteMeta note) ^? key "date" % _String
@@ -62,16 +58,19 @@ renderFeed model baseNote = encodeUtf8 $ case eFeedText of
         [] -> Left "no notes matched the query"
         x : xs -> Right (x :| xs)
 
-      -- render the feed
+      -- process the notes
       let noteFeedUrl, indexUrl :: Maybe Text
           noteFeedUrl = lookupMeta ("feed" :| ["url"]) baseNote
           indexRoute = M.modelIndexRoute model
           indexUrl = lookupRouteMeta Nothing ("site" :| ["url"]) indexRoute model
       feedUrl <- maybeToRight "index.yaml or note doesn't have url" (noteFeedUrl <|> indexUrl)
-      let feedName = _feedTitle feed
       let noteUrl note =
             let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
              in feedUrl <> "/" <> siteRouteUrl model sr
-      let updated = getNoteDate (head notes)
-      let final = notesToFeed noteUrl updated (toList notes) feedUrl feedName
-      maybeToRight "invalid feed" $ Export.textFeed final
+      let feedEntries = noteToEntry noteUrl <$> toList notes
+
+      -- render the feed
+      let feedName = Atom.TextString (_feedTitle feed)
+      let feedUpdated = getNoteDate (head notes)
+      let atomFeed = (Atom.nullFeed feedUrl feedName feedUpdated) {Atom.feedEntries}
+      maybeToRight "invalid feed" $ Export.textFeed atomFeed
