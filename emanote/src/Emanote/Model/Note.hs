@@ -39,6 +39,7 @@ import Text.Pandoc.Walk qualified as W
 data Feed = Feed
   { _feedEnabled :: Bool
   , _feedTitle :: Maybe Text
+  , _feedLimit :: Maybe Word
   }
   deriving stock (Eq, Ord, Show, Generic)
   deriving anyclass (Aeson.ToJSON, Aeson.FromJSON)
@@ -134,7 +135,8 @@ queryNoteFeed meta = do
   feed <- SData.lookupAeson Nothing (one "feed") meta
   let name = SData.lookupAeson Nothing (one "name") feed
   let enabled = SData.lookupAeson False (one "enabled") feed
-  pure $ Feed enabled name
+  let feedLimit = SData.lookupAeson Nothing (one "limit") feed
+  pure $ Feed enabled name feedLimit
 
 queryNoteTitle :: R.LMLRoute -> Pandoc -> Aeson.Value -> (Pandoc, Tit.Title)
 queryNoteTitle r doc meta =

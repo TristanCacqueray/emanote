@@ -23,5 +23,6 @@ Here are the supported settings:
 
 - `feed.url`: the site url, default to `site.url` from the index.yaml.
 - `feed.title`: the feed title, default to the note title.
+- `feed.limit`: the maximum number of notes to include in the feed.
 
 The feed is constructed from the first and only query of the note.

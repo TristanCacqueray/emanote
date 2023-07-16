@@ -67,7 +67,10 @@ renderFeed model baseNote = encodeUtf8 $ case eFeedText of
       let noteUrl note =
             let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
              in feedUrl <> "/" <> siteRouteUrl model sr
-      let feedEntries = noteToEntry noteUrl <$> toList notes
+      let takeNotes = case _feedLimit feed of
+            Nothing -> id
+            Just x -> take (fromIntegral x)
+      let feedEntries = noteToEntry noteUrl <$> takeNotes (toList notes)
 
       -- render the feed
       let feedTitle = fromMaybe (toPlain $ _noteTitle baseNote) (_feedTitle feed)
