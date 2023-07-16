@@ -32,10 +32,12 @@ feedDiscoveryLink model note =
   where
     feedUrl = siteRouteUrl model (noteFeedSiteRoute note)
 
-noteToEntry :: (Note -> Text) -> Note -> Atom.Entry
-noteToEntry noteUrl note = entry {Atom.entrySummary}
+noteToEntry :: Atom.URI -> (Note -> Text) -> Note -> Atom.Entry
+noteToEntry baseUrl noteUrl note = entry {Atom.entrySummary, Atom.entryLinks}
   where
-    entry = Atom.nullEntry (noteUrl note) noteTitle noteDate
+    entry = Atom.nullEntry entryUrl noteTitle noteDate
+    entryUrl = noteUrl note
+    entryLinks = [(Atom.nullLink (baseUrl <> "/" <> entryUrl)) {Atom.linkRel = Just (Left "alternate")}]
     noteDate = getNoteDate note
     noteTitle = (Atom.TextString (toPlain $ _noteTitle note))
     entrySummary = Atom.TextString <$> lookupMeta ("page" :| ["description"]) note
@@ -81,15 +83,19 @@ renderFeed model baseNote = encodeUtf8 $ case eFeedText of
       feedUrl <- maybeToRight "index.yaml or note doesn't have url" (noteFeedUrl <|> indexUrl)
       let noteUrl note =
             let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
-             in feedUrl <> "/" <> siteRouteUrl model sr
+             in siteRouteUrl model sr
       let takeNotes = case _feedLimit feed of
             Nothing -> id
             Just x -> take (fromIntegral x)
-      let feedEntries = noteToEntry noteUrl <$> takeNotes (toList notes)
+      let feedEntries = noteToEntry feedUrl noteUrl <$> takeNotes (toList notes)
 
       -- render the feed
       let feedTitle = fromMaybe (toPlain $ _noteTitle baseNote) (_feedTitle feed)
       let feedName = Atom.TextString feedTitle
       let feedUpdated = getNoteDate (head notes)
-      let atomFeed = (Atom.nullFeed feedUrl feedName feedUpdated) {Atom.feedEntries}
+      let feedLinks =
+            [ (Atom.nullLink (feedUrl <> "/" <> noteUrl baseNote)) {Atom.linkRel = Just (Left "alternate")}
+            , (Atom.nullLink (feedUrl <> "/" <> siteRouteUrl model (noteFeedSiteRoute baseNote))) {Atom.linkRel = Just (Left "self")}
+            ]
+      let atomFeed = (Atom.nullFeed feedUrl feedName feedUpdated) {Atom.feedEntries, Atom.feedLinks}
       maybeToRight "invalid feed" $ Export.textFeed atomFeed
