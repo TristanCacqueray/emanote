@@ -22,7 +22,7 @@ import Emanote.Route.SiteRoute qualified as SR
 import Emanote.Route.SiteRoute.Class (indexRoute)
 import Emanote.View.Common qualified as C
 import Emanote.View.Export (renderGraphExport)
-import Emanote.View.Feed (renderFeed)
+import Emanote.View.Feed (renderFeed, feedDiscoveryLink)
 import Emanote.View.TagIndex qualified as TagIndex
 import Emanote.View.TaskIndex qualified as TaskIndex
 import Heist qualified as H
@@ -35,6 +35,7 @@ import Heist.Splices qualified as Heist
 import Optics.Core (Prism', review)
 import Optics.Operators ((.~), (^.))
 import Relude
+import Text.Blaze.Renderer.XmlHtml qualified as RX
 import Text.Pandoc.Builder qualified as B
 import Text.Pandoc.Definition (Pandoc (..))
 
@@ -168,6 +169,9 @@ renderLmlHtml model note = do
       HI.textSplice (toText . R.withLmlRoute R.encodeRoute $ r)
     "ema:note:url" ##
       HI.textSplice (SR.siteRouteUrl model . SR.lmlSiteRoute $ r)
+    "emaNoteFeedUrl" ## pure . RX.renderHtmlNodes $ case MN._noteFeed note of
+        Nothing -> mempty
+        Just _ -> feedDiscoveryLink model note
     "ema:note:backlinks" ##
       backlinksSplice (G.modelLookupBacklinks modelRoute model)
     let (backlinksDaily, backlinksNoDaily) = partition (Calendar.isDailyNote . fst) $ G.modelLookupBacklinks modelRoute model

@@ -10,12 +10,27 @@ import Emanote.Model.Query (Query, parseQuery, runQuery)
 import Emanote.Model.Title (toPlain)
 import Emanote.Model.Type qualified as M
 import Emanote.Route.SiteRoute
+import Emanote.Route.SiteRoute.Class (noteFeedSiteRoute)
 import Optics.Operators ((^?))
 import Optics.Optic ((%))
 import Relude
 import Text.Atom.Feed qualified as Atom
 import Text.Atom.Feed.Export qualified as Export (textFeed)
 import Text.Pandoc.Definition hiding (lookupMeta)
+
+import Text.Blaze.Html (Html, (!))
+import Text.Blaze.Html5 qualified as H
+import Text.Blaze.Html5.Attributes qualified as A
+
+feedDiscoveryLink :: Model -> Note -> Html
+feedDiscoveryLink model note =
+  H.link
+    ! A.href (H.toValue feedUrl)
+    ! A.rel "alternate"
+    ! A.type_ "application/atom+xml"
+    ! A.title "Atom Feed"
+  where
+    feedUrl = siteRouteUrl model (noteFeedSiteRoute note)
 
 noteToEntry :: (Note -> Text) -> Note -> Atom.Entry
 noteToEntry noteUrl note = entry {Atom.entrySummary}

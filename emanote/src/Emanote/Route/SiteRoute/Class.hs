@@ -1,6 +1,7 @@
 module Emanote.Route.SiteRoute.Class (
   decodeVirtualRoute,
   noteFileSiteRoute,
+  noteFeedSiteRoute,
   staticFileSiteRoute,
   lmlSiteRoute,
   indexRoute,
