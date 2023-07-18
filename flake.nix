@@ -12,13 +12,11 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     flake-root.url = "github:srid/flake-root";
-    check-flake.url = "github:srid/check-flake";
 
     ema.url = "github:srid/ema";
     ema.inputs.nixpkgs.follows = "nixpkgs";
     ema.inputs.haskell-flake.follows = "haskell-flake";
     ema.inputs.flake-parts.follows = "flake-parts";
-    ema.inputs.check-flake.follows = "check-flake";
     ema.inputs.treefmt-nix.follows = "treefmt-nix";
     ema.inputs.flake-root.follows = "flake-root";
   };
@@ -27,7 +25,6 @@
       systems = import inputs.systems;
       imports = [
         inputs.haskell-flake.flakeModule
-        inputs.check-flake.flakeModule
         inputs.flake-root.flakeModule
         inputs.treefmt-nix.flakeModule
         ./nix/flake-module.nix
@@ -55,8 +52,8 @@
           devShell.tools = hp: {
             inherit (pkgs)
               stork;
-            treefmt = config.treefmt.build.wrapper;
-          } // config.treefmt.build.programs;
+          };
+          autoWire = [ "packages" "apps" "checks" ];
 
           settings = {
             emanote = { name, pkgs, self, super, ... }: {
@@ -100,6 +97,12 @@
 
         packages.default = config.packages.emanote;
         apps.default = config.apps.emanote;
+        devShells.default = pkgs.mkShell {
+          inputsFrom = [
+            config.haskellProjects.default.outputs.devShell
+            config.treefmt.build.devShell
+          ];
+        };
 
         emanote = {
           package = config.packages.default;
