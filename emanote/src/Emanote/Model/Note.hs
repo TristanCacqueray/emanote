@@ -133,10 +133,10 @@ noteHasFeed = maybe False _feedEnable . _noteFeed
 queryNoteFeed :: Aeson.Value -> Maybe Feed
 queryNoteFeed meta = do
   feed <- SData.lookupAeson Nothing (one "feed") meta
-  let name = SData.lookupAeson Nothing (one "name") feed
+  let title = SData.lookupAeson Nothing (one "title") feed
   let enable = SData.lookupAeson False (one "enable") feed
   let feedLimit = SData.lookupAeson Nothing (one "limit") feed
-  pure $ Feed enable name feedLimit
+  pure $ Feed enable title feedLimit
 
 queryNoteTitle :: R.LMLRoute -> Pandoc -> Aeson.Value -> (Pandoc, Tit.Title)
 queryNoteTitle r doc meta =
