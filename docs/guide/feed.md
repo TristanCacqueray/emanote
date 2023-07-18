@@ -21,7 +21,7 @@ If the note is named `blog.md`, then the feed will be available at `blog.xml`.
 
 Here are the supported settings:
 
-- `feed.siteUrl`: the site url, default to `site.url` from the index.yaml.
+- `feed.siteUrl`: the site url, default to global setting from the index.yaml.
 - `feed.title`: the feed title, default to the note title.
 - `feed.limit`: the maximum number of notes to include in the feed.
 
