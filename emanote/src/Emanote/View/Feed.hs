@@ -10,6 +10,7 @@ import Emanote.Model.Note (Feed (..), Note (..), lookupMeta)
 import Emanote.Model.Query (Query, parseQuery, runQuery)
 import Emanote.Model.SData (lookupAeson)
 import Emanote.Model.Title (toPlain)
+import Emanote.Route.R qualified as R
 import Emanote.Route.SiteRoute
 import Emanote.Route.SiteRoute.Class (noteFeedSiteRoute)
 import Optics.Operators ((^?))
@@ -85,7 +86,7 @@ renderFeed model baseNote = case eFeedText of
 
       -- process the notes
       let noteUrl note =
-            let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML LMLView_Html $ _noteRoute note
+            let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML R.LMLView_Html $ _noteRoute note
              in siteRouteUrl model sr
       let takeNotes = case _feedLimit feed of
             Nothing -> id

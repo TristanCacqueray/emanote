@@ -33,7 +33,7 @@ type StaticFileRoute = R 'AnyExt
 -- | A R to anywhere in `Model`
 data ModelRoute
   = ModelRoute_StaticFile StaticFileRoute
-  | ModelRoute_LML LMLRoute
+  | ModelRoute_LML R.LMLView LMLRoute
   deriving stock (Eq, Show, Ord, Generic)
   deriving anyclass (ToJSON)
 
@@ -73,12 +73,12 @@ modelRouteCase ::
   ModelRoute ->
   Either LMLRoute StaticFileRoute
 modelRouteCase = \case
-  ModelRoute_LML r -> Left r
+  ModelRoute_LML _ r -> Left r
   ModelRoute_StaticFile r -> Right r
 
 mkModelRouteFromFilePath :: FilePath -> Maybe ModelRoute
 mkModelRouteFromFilePath fp =
-  fmap ModelRoute_LML (mkLMLRouteFromFilePath fp)
+  fmap (ModelRoute_LML R.LMLView_Html) (mkLMLRouteFromFilePath fp)
     <|> fmap ModelRoute_StaticFile (R.mkRouteFromFilePath fp)
 
 mkLMLRouteFromFilePath :: FilePath -> Maybe LMLRoute

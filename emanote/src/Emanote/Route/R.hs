@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 module Emanote.Route.R where
 
 import Data.Aeson (ToJSON (toJSON))
@@ -10,6 +12,10 @@ import Network.URI.Slug qualified as Slug
 import Relude
 import System.FilePath (splitPath)
 import Text.Show qualified (Show (show))
+
+data LMLView = LMLView_Html | LMLView_Atom
+  deriving stock (Eq, Show, Ord, Generic)
+  deriving anyclass (ToJSON)
 
 {- | Represents the relative path to some file (or its isomporphic URL
  represetation).

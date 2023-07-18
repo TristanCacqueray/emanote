@@ -87,14 +87,14 @@ render m sr =
 
 renderResourceRoute :: Model -> SR.ResourceRoute -> Ema.Asset LByteString
 renderResourceRoute m = \case
-  SR.ResourceRoute_LML SR.LMLView_Html r -> do
+  SR.ResourceRoute_LML R.LMLView_Html r -> do
     case M.modelLookupNoteByRoute r m of
       Just note ->
         Ema.AssetGenerated Ema.Html $ renderLmlHtml m note
       Nothing ->
         -- This should never be reached because decodeRoute looks up the model.
         error $ "Bad route: " <> show r
-  SR.ResourceRoute_LML SR.LMLView_Atom r ->
+  SR.ResourceRoute_LML R.LMLView_Atom r ->
     case M.modelLookupNoteByRoute r m of
       Just note -> case renderFeed m note of
         Left err -> error $ toStrict $ "Bad feed: " <> show r <> ": " <> err
@@ -165,7 +165,7 @@ renderLmlHtml model note = do
     -- Note stuff
     "ema:note:title" ##
       C.titleSplice ctx (note ^. MN.noteTitle)
-    let modelRoute = R.ModelRoute_LML r
+    let modelRoute = R.ModelRoute_LML R.LMLView_Html r
     "ema:note:source-path" ##
       HI.textSplice (toText . R.withLmlRoute R.encodeRoute $ r)
     "ema:note:url" ##
