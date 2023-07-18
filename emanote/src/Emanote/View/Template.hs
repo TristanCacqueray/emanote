@@ -173,8 +173,8 @@ renderLmlHtml model note = do
     "emaNoteFeedUrl" ##
       pure . RX.renderHtmlNodes $
         if MN.noteHasFeed note
-          then mempty
-          else feedDiscoveryLink model note
+          then feedDiscoveryLink model note
+          else mempty
     "ema:note:backlinks" ##
       backlinksSplice (G.modelLookupBacklinks modelRoute model)
     let (backlinksDaily, backlinksNoDaily) = partition (Calendar.isDailyNote . fst) $ G.modelLookupBacklinks modelRoute model
