@@ -2,6 +2,7 @@
 order: -95
 feed:
   enable: true
+  title: Feed Demo - Emanote
 ---
 
 # Obsidian-style queries
