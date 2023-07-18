@@ -85,7 +85,7 @@ renderFeed model baseNote = case eFeedText of
 
       -- process the notes
       let noteUrl note =
-            let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
+            let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML LMLView_Html $ _noteRoute note
              in siteRouteUrl model sr
       let takeNotes = case _feedLimit feed of
             Nothing -> id
