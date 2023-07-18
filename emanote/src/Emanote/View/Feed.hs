@@ -60,10 +60,10 @@ getNoteQuery note = case _noteDoc note of
           Left _ -> Right query
       _ -> go rest
 
-renderFeed :: Model -> Note -> LByteString
-renderFeed model baseNote = encodeUtf8 $ case eFeedText of
-  Left err -> "<error>" <> err <> "</error>"
-  Right feedText -> feedText
+renderFeed :: Model -> Note -> Either LText LByteString
+renderFeed model baseNote = case eFeedText of
+  Left err -> Left err
+  Right feedText -> Right (encodeUtf8 feedText)
   where
     eFeedText = do
       -- get the note feed

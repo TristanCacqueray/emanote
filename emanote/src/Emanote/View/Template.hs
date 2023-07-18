@@ -96,8 +96,9 @@ renderResourceRoute m = \case
         error $ "Bad route: " <> show r
   SR.ResourceRoute_Feed r ->
     case M.modelLookupNoteByRoute r m of
-      Just note ->
-        Ema.AssetGenerated Ema.Other $ renderFeed m note
+      Just note -> case renderFeed m note of
+        Left err -> error $ toStrict $ "Bad feed: " <> err
+        Right feed -> Ema.AssetGenerated Ema.Other feed
       Nothing ->
         -- This should never be reached because decodeRoute looks up the model.
         error $ "Bad route: " <> show r
