@@ -17,6 +17,10 @@ path:blog/*
 
 If the note is named `blog.md`, then the feed will be available at `blog.xml`.
 
+## Example
+
+An example is available in the [[query]] note. You can access its feed at [/guide/query.xml](/guide/query.xml).
+
 ## Configuration
 
 Here are the supported settings:
