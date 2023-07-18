@@ -39,11 +39,11 @@ noteToEntry baseUrl noteUrl note = entry {Atom.entrySummary, Atom.entryLinks}
     entryUrl = noteUrl note
     entryLinks = [(Atom.nullLink (baseUrl <> "/" <> entryUrl)) {Atom.linkRel = Just (Left "alternate")}]
     noteDate = getNoteDate note
-    noteTitle = (Atom.TextString (toPlain $ _noteTitle note))
+    noteTitle = Atom.TextString $ toPlain $ _noteTitle note
     entrySummary = Atom.TextString <$> lookupMeta ("page" :| ["description"]) note
 
 getNoteDate :: Note -> Atom.Date
-getNoteDate note = fromMaybe "1970-01-01" $ (_noteMeta note) ^? key "date" % _String
+getNoteDate note = fromMaybe "1970-01-01" $ _noteMeta note ^? key "date" % _String
 
 getNoteQuery :: Note -> Either LText Query
 getNoteQuery note = case _noteDoc note of

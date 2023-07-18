@@ -111,8 +111,8 @@ encodeResourceRoute model = \case
   ResourceRoute_Feed r ->
     R.encodeRoute
       $ fromMaybe
-          -- FIXME: See note above.
-          (error $ "emanote: attempt to encode missing note: " <> show r)
+        -- FIXME: See note above.
+        (error $ "emanote: attempt to encode missing note: " <> show r)
       $ N.noteXmlRoute =<< M.modelLookupNoteByRoute r model
   ResourceRoute_StaticFile r _fpAbs ->
     R.encodeRoute r

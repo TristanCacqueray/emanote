@@ -22,7 +22,7 @@ import Emanote.Route.SiteRoute qualified as SR
 import Emanote.Route.SiteRoute.Class (indexRoute)
 import Emanote.View.Common qualified as C
 import Emanote.View.Export (renderGraphExport)
-import Emanote.View.Feed (renderFeed, feedDiscoveryLink)
+import Emanote.View.Feed (feedDiscoveryLink, renderFeed)
 import Emanote.View.TagIndex qualified as TagIndex
 import Emanote.View.TaskIndex qualified as TaskIndex
 import Heist qualified as H
@@ -170,8 +170,8 @@ renderLmlHtml model note = do
     "ema:note:url" ##
       HI.textSplice (SR.siteRouteUrl model . SR.lmlSiteRoute $ r)
     "emaNoteFeedUrl" ## pure . RX.renderHtmlNodes $ case MN._noteFeed note of
-        Nothing -> mempty
-        Just _ -> feedDiscoveryLink model note
+      Nothing -> mempty
+      Just _ -> feedDiscoveryLink model note
     "ema:note:backlinks" ##
       backlinksSplice (G.modelLookupBacklinks modelRoute model)
     let (backlinksDaily, backlinksNoDaily) = partition (Calendar.isDailyNote . fst) $ G.modelLookupBacklinks modelRoute model

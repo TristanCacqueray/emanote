@@ -305,7 +305,7 @@ modelIndexRoute :: ModelT f -> LMLRoute
 modelIndexRoute model = do
   resolveLmlRoute model R.indexRoute
 
-resolveLmlRoute :: forall lmlType f. ModelT f -> R ( 'R.LMLType lmlType) -> LMLRoute
+resolveLmlRoute :: forall lmlType f. ModelT f -> R ('R.LMLType lmlType) -> LMLRoute
 resolveLmlRoute model r =
   fromMaybe (R.defaultLmlRoute r) $ resolveLmlRouteIfExists (model ^. modelNotes) r
 
