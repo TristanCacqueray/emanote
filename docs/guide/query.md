@@ -1,5 +1,7 @@
 ---
 order: -95
+feed:
+  enabled: true
 ---
 
 # Obsidian-style queries
