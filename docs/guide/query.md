@@ -1,7 +1,7 @@
 ---
 order: -95
 feed:
-  enabled: true
+  enable: true
 ---
 
 # Obsidian-style queries
@@ -14,7 +14,7 @@ Both `*` and `**` are supported in the path patterns. See [System.FilePattern](h
 
 Some examples are provided below:
 
-### List notes in current folder 
+### List notes in current folder
 
 ~~~markdown
 ```query

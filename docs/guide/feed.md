@@ -5,7 +5,7 @@ An atom feed can be generated for a given note query by adding the following to 
 ~~~markdown
 ---
 feed:
-  enabled: true
+  enable: true
 ---
 
 # My blog

@@ -37,7 +37,7 @@ import Text.Pandoc.Readers.Org (readOrg)
 import Text.Pandoc.Walk qualified as W
 
 data Feed = Feed
-  { _feedEnabled :: Bool
+  { _feedEnable :: Bool
   , _feedTitle :: Maybe Text
   , _feedLimit :: Maybe Word
   }
@@ -128,15 +128,15 @@ lookupMeta k =
   SData.lookupAeson Nothing k . _noteMeta
 
 noteHasFeed :: Note -> Bool
-noteHasFeed = maybe False _feedEnabled . _noteFeed
+noteHasFeed = maybe False _feedEnable . _noteFeed
 
 queryNoteFeed :: Aeson.Value -> Maybe Feed
 queryNoteFeed meta = do
   feed <- SData.lookupAeson Nothing (one "feed") meta
   let name = SData.lookupAeson Nothing (one "name") feed
-  let enabled = SData.lookupAeson False (one "enabled") feed
+  let enable = SData.lookupAeson False (one "enable") feed
   let feedLimit = SData.lookupAeson Nothing (one "limit") feed
-  pure $ Feed enabled name feedLimit
+  pure $ Feed enable name feedLimit
 
 queryNoteTitle :: R.LMLRoute -> Pandoc -> Aeson.Value -> (Pandoc, Tit.Title)
 queryNoteTitle r doc meta =
