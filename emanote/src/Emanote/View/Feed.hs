@@ -2,13 +2,14 @@
 
 module Emanote.View.Feed where
 
+import Data.Aeson qualified as Aeson
 import Data.Aeson.Optics (key, _String)
 import Emanote.Model (Model)
-import Emanote.Model.Meta (lookupRouteMeta)
+import Emanote.Model.Meta (getEffectiveRouteMeta)
 import Emanote.Model.Note (Feed (..), Note (..), lookupMeta)
 import Emanote.Model.Query (Query, parseQuery, runQuery)
+import Emanote.Model.SData (lookupAeson)
 import Emanote.Model.Title (toPlain)
-import Emanote.Model.Type qualified as M
 import Emanote.Route.SiteRoute
 import Emanote.Route.SiteRoute.Class (noteFeedSiteRoute)
 import Optics.Operators ((^?))
@@ -25,7 +26,7 @@ import Text.Blaze.Html5.Attributes qualified as A
 feedDiscoveryLink :: Model -> Note -> Html
 feedDiscoveryLink model note =
   H.link
-    ! A.href (H.toValue feedUrl)
+    ! A.href ("/" <> H.toValue feedUrl)
     ! A.rel "alternate"
     ! A.type_ "application/atom+xml"
     ! A.title "Atom Feed"
@@ -75,12 +76,14 @@ renderFeed model baseNote = case eFeedText of
         [] -> Left "no notes matched the query"
         x : xs -> Right (x :| xs)
 
+      -- lookup the feedUrl
+      let feedMeta :: Aeson.Value
+          feedMeta = getEffectiveRouteMeta (_noteRoute baseNote) model
+      let mFeedUrl :: Maybe Text
+          mFeedUrl = lookupAeson Nothing ("feed" :| ["siteUrl"]) feedMeta
+      feedUrl <- maybeToRight "index.yaml or note doesn't have feed.siteUrl" mFeedUrl
+
       -- process the notes
-      let noteFeedUrl, indexUrl :: Maybe Text
-          noteFeedUrl = lookupMeta ("feed" :| ["url"]) baseNote
-          indexRoute = M.modelIndexRoute model
-          indexUrl = lookupRouteMeta Nothing ("site" :| ["url"]) indexRoute model
-      feedUrl <- maybeToRight "index.yaml or note doesn't have url" (noteFeedUrl <|> indexUrl)
       let noteUrl note =
             let sr = SiteRoute_ResourceRoute $ ResourceRoute_LML $ _noteRoute note
              in siteRouteUrl model sr
