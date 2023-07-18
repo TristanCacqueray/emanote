@@ -79,7 +79,12 @@ modelRouteCase = \case
 mkModelRouteFromFilePath :: FilePath -> Maybe ModelRoute
 mkModelRouteFromFilePath fp =
   fmap (ModelRoute_LML R.LMLView_Html) (mkLMLRouteFromFilePath fp)
+    <|> fmap (ModelRoute_LML R.LMLView_Atom) (mkLMLRouteFromXmlPath fp)
     <|> fmap ModelRoute_StaticFile (R.mkRouteFromFilePath fp)
+
+mkLMLRouteFromXmlPath :: FilePath -> Maybe LMLRoute
+mkLMLRouteFromXmlPath fp = do
+  defaultLmlRoute <$> R.decodeXmlRoute (drop 1 fp)
 
 mkLMLRouteFromFilePath :: FilePath -> Maybe LMLRoute
 mkLMLRouteFromFilePath fp =
