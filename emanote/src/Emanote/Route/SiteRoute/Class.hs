@@ -98,7 +98,7 @@ emanoteRouteEncoder model =
 
 encodeResourceRoute :: HasCallStack => ModelEma -> ResourceRoute -> FilePath
 encodeResourceRoute model = \case
-  ResourceRoute_LML R.LMLView_Html r ->
+  ResourceRoute_LML LMLView_Html r ->
     R.encodeRoute
       $
       -- HACK: This should never fail ... but *if* it does, consult
@@ -108,7 +108,7 @@ encodeResourceRoute model = \case
         (error $ "emanote: attempt to encode missing note: " <> show r)
         N.noteHtmlRoute
       $ M.modelLookupNoteByRoute r model
-  ResourceRoute_LML R.LMLView_Atom r ->
+  ResourceRoute_LML LMLView_Atom r ->
     R.encodeRoute
       $ fromMaybe
         -- FIXME: See note above.
@@ -144,7 +144,7 @@ decodeGeneratedRoute model fp =
       SiteRoute_AmbiguousR ("/" <> fp) (N._noteRoute <$> ns)
 
 noteFeedSiteRoute :: N.Note -> SiteRoute
-noteFeedSiteRoute = SiteRoute_ResourceRoute . ResourceRoute_LML R.LMLView_Atom . N._noteRoute
+noteFeedSiteRoute = SiteRoute_ResourceRoute . ResourceRoute_LML LMLView_Atom . N._noteRoute
 
 noteFileSiteRoute :: N.Note -> SiteRoute
 noteFileSiteRoute =
@@ -155,7 +155,7 @@ lmlSiteRoute =
   SiteRoute_ResourceRoute . lmlResourceRoute
 
 lmlResourceRoute :: LMLRoute -> ResourceRoute
-lmlResourceRoute = ResourceRoute_LML R.LMLView_Html
+lmlResourceRoute = ResourceRoute_LML LMLView_Html
 
 staticFileSiteRoute :: SF.StaticFile -> SiteRoute
 staticFileSiteRoute =

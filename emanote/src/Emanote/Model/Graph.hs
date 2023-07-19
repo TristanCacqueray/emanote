@@ -46,7 +46,7 @@ modelFolgezettelAncestorTree r0 model =
               , folgezettelFolder
               ]
       fmap catMaybes . forM folgezettelParents $ \parentR -> do
-        let parentModelR = R.ModelRoute_LML R.LMLView_Html parentR
+        let parentModelR = R.ModelRoute_LML parentR
         gets (parentModelR `Set.member`) >>= \case
           True -> pure Nothing
           False -> do

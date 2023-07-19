@@ -4,6 +4,7 @@ module Emanote.Route.SiteRoute.Type (
   SiteRoute (..),
   VirtualRoute (..),
   ResourceRoute (..),
+  LMLView (..),
   decodeVirtualRoute,
   encodeVirtualRoute,
   encodeTagIndexR,
@@ -35,7 +36,11 @@ data VirtualRoute
 -}
 data ResourceRoute
   = ResourceRoute_StaticFile StaticFileRoute FilePath
-  | ResourceRoute_LML R.LMLView LMLRoute
+  | ResourceRoute_LML LMLView LMLRoute
+  deriving stock (Eq, Show, Ord, Generic)
+  deriving anyclass (ToJSON)
+
+data LMLView = LMLView_Html | LMLView_Atom
   deriving stock (Eq, Show, Ord, Generic)
   deriving anyclass (ToJSON)
 
