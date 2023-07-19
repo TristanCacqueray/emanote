@@ -32,21 +32,29 @@ urlResolvingSplice model _nf (ctxSansCustomSplicing -> ctx) noteRoute inl = do
   let parentR = R.withLmlRoute R.routeParent noteRoute
   (uRel, mAnchor) <- Rel.parseUnresolvedRelTarget parentR (otherAttrs <> one ("title", tit)) url
   let rRel = Resolve.resolveUnresolvedRelTarget model uRel
-  renderSomeInlineRefWith id (is, (url, tit)) rRel model ctx inl $ \sr ->
-    case inlRef of
-      Link.InlineLink -> do
-        -- TODO: If uRel is `Rel.URTWikiLink (WL.WikiLinkEmbed, _)`, *and* it appears
-        -- in B.Para (so do this in block-level custom splice), then embed it.
-        -- We don't do this here, as this inline splice can't embed block elements.
-        let (newIs, (newUrl', isNotEmaLink)) = replaceLinkNodeWithRoute model sr (is, url)
-            newOtherAttrs = otherAttrs <> [openInNewTabAttr | M.inLiveServer model && isNotEmaLink]
-            newAttr = (id', cls, newOtherAttrs)
-            newUrl = newUrl' <> WL.anchorSuffix mAnchor
-        pure $ HP.rpInline ctx $ B.Link newAttr newIs (newUrl, tit)
-      Link.InlineImage -> do
-        let (newIs, (newUrl, _)) =
-              replaceLinkNodeWithRoute model sr (toList $ nonEmptyInlines url is, url)
-        pure $ HP.rpInline ctx $ B.Image attr newIs (newUrl, tit)
+  let goBase =
+       renderSomeInlineRefWith id (is, (url, tit)) rRel model ctx inl $ \sr ->
+        case inlRef of
+          Link.InlineLink -> do
+            -- TODO: If uRel is `Rel.URTWikiLink (WL.WikiLinkEmbed, _)`, *and* it appears
+            -- in B.Para (so do this in block-level custom splice), then embed it.
+            -- We don't do this here, as this inline splice can't embed block elements.
+            let (newIs, (newUrl', isNotEmaLink)) = replaceLinkNodeWithRoute model sr (is, url)
+                newOtherAttrs = otherAttrs <> [openInNewTabAttr | M.inLiveServer model && isNotEmaLink]
+                newAttr = (id', cls, newOtherAttrs)
+                newUrl = newUrl' <> WL.anchorSuffix mAnchor
+            pure $ HP.rpInline ctx $ B.Link newAttr newIs (newUrl, tit)
+          Link.InlineImage -> do
+            let (newIs, (newUrl, _)) =
+                  replaceLinkNodeWithRoute model sr (toList $ nonEmptyInlines url is, url)
+            pure $ HP.rpInline ctx $ B.Image attr newIs (newUrl, tit)
+  let isFeed
+       | ".xml" `T.isSuffixOf` url = True -- TODO: check the note has a feed.enable defined
+       | otherwise = False
+      goFeed = pure $ HP.rpInline ctx $ B.Link attr is (url, url)
+  if isFeed
+    then goFeed
+    else goBase
 
 openInNewTabAttr :: (Text, Text)
 openInNewTabAttr =
