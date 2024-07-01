@@ -34,7 +34,7 @@ import Network.URI.Slug (Slug)
 import Optics.Core ((%), (.~))
 import Optics.TH (makeLenses)
 import Relude
-import System.FilePath (takeDirectory, takeFileName)
+import System.FilePath (takeDirectory, takeFileName, (</>))
 import Text.Pandoc (readerExtensions, runPure)
 import Text.Pandoc.Builder qualified as B
 import Text.Pandoc.Definition (Pandoc (..))
@@ -455,7 +455,7 @@ parseNoteMarkdown scriptingEngine pluginBaseDir r fp md = do
       tell $ NoteFilter.filterDeclarationShapeErrors frontmatter
       let filterDeclarations = NoteFilter.lookupPandocFilterDeclarations frontmatter
       doc <- NoteFilter.applyParsePandocFilters scriptingEngine pluginBaseDir filterDeclarations $ preparePandoc doc'
-      let meta = applyNoteMetaFilters doc r frontmatter
+      let meta = applyNoteMetaFilters (takeDirectory fp) doc r frontmatter
       pure $ ParsedNoteSource doc meta filterDeclarations
   where
     withAesonDefault default_ mv =
@@ -466,8 +466,8 @@ defaultFrontMatter :: Aeson.Value
 defaultFrontMatter =
   Aeson.toJSON $ Map.fromList @Text @[Text] $ one ("tags", [])
 
-applyNoteMetaFilters :: Pandoc -> R.LMLRoute -> Aeson.Value -> Aeson.Value
-applyNoteMetaFilters doc r =
+applyNoteMetaFilters :: FilePath -> Pandoc -> R.LMLRoute -> Aeson.Value -> Aeson.Value
+applyNoteMetaFilters fileDirectory doc r =
   addTagsFromMarkdown
     >>> addDescriptionFromBody
     >>> addImageFromBody
@@ -504,7 +504,7 @@ applyNoteMetaFilters doc r =
     -- `![[foo.jpeg]]` is not handled at all.
     addImageFromBody =
       overrideAesonText ("page" :| ["image"]) $ \case
-        B.Image _ _ (url, _) -> [url]
+        B.Image _ _ (url, _) -> [T.pack (fileDirectory </> T.unpack url)]
         _ -> mempty
     overrideAesonText :: forall a. (W.Walkable a Pandoc) => NonEmpty Text -> (a -> [Text]) -> Aeson.Value -> Aeson.Value
     overrideAesonText key f frontmatter =
