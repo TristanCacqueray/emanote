@@ -30,7 +30,7 @@ pandocToHeadings (Pandoc _ blocks) = mapMaybe toHeading blocks
 
 -- | Create the Toc
 newToc :: Pandoc -> Toc
-newToc = goInit . pandocToHeadings
+newToc = goInit . filter (\(lvl, _) -> lvl < 4) . pandocToHeadings
   where
     goInit xs = go [] (maybe 1 (fst . head) $ nonEmpty xs) xs
     go acc lvl ((headingLvl, heading) : rest)
