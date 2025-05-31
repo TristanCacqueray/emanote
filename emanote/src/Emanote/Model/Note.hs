@@ -431,7 +431,9 @@ applyNoteMetaFilters fileDirectory doc r =
     -- `![[foo.jpeg]]` is not handled at all.
     addImageFromBody =
       overrideAesonText ("page" :| ["image"]) $ \case
-        B.Image _ _ (url, _) -> [T.pack (fileDirectory </> T.unpack url)]
+        B.Image _ _ (url, _)
+          | "https://" `T.isInfixOf` url || "http://" `T.isInfixOf` url -> [url]
+          | otherwise -> [T.pack (fileDirectory </> T.unpack url)]
         _ -> mempty
     overrideAesonText :: forall a. (W.Walkable a Pandoc) => NonEmpty Text -> (a -> [Text]) -> Aeson.Value -> Aeson.Value
     overrideAesonText key f frontmatter =
