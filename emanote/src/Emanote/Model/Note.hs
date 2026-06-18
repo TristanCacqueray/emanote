@@ -484,18 +484,11 @@ applyNoteMetaFilters fileDirectory doc r =
                 [ tagsFromFrontmatter frontmatter
                 , -- Include inline tags from note body
                   tagsFromBody
-                , -- Include tags for daily notes
-                  tagsForDailyNote
                 ]
            )
     tagsFromFrontmatter =
       SData.lookupAeson @[HT.Tag] mempty (one "tags")
     tagsFromBody = HT.inlineTagsInPandoc doc
-    tagsForDailyNote = maybe mempty dayTags $ Calendar.parseRouteDay r
-    dayTags day =
-      let (y, m, _d) = toGregorian day
-          pad2 = toText @String . printf "%02d"
-       in [HT.Tag $ "calendar/" <> show y <> "/" <> pad2 m]
     addDescriptionFromBody =
       overrideAesonText ("page" :| ["description"]) $ \case
         B.Para is -> [WL.plainify is]
